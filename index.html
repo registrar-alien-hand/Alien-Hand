@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ALIEN HAND</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="sheet">
+
+    <div class="image-field">
+      <img id="main-image" src="seerstone.jpg" alt="">
+    </div>
+
+    <h1 class="title"><span>ALIEN</span><span>HAND</span></h1>
+
+    <div class="record-block">
+      <nav class="register" id="register" aria-label="Register"></nav>
+      <div class="record" id="record"></div>
+    </div>
+
+    <div class="mobile-nav">
+      <button class="nav-arrow" id="prev-btn" aria-label="Previous object">&#8592;</button>
+      <button class="nav-arrow" id="next-btn" aria-label="Next object">&#8594;</button>
+    </div>
+
+  </div>
+
+  <script>
+    /* ============================================================
+       THE REGISTER
+       - Array order IS accession order. New objects are appended.
+       - Numbers are never reused or reassigned.
+       - Image file must be named  slug + '.jpg'  (all lowercase).
+       - Empty fields render as an em dash. Fill them in as the
+         records get catalogued; identical boilerplate, always.
+       - dims format when known: '14 × 15 × 9 cm'
+       ============================================================ */
+    const collection = [
+      { no: '2026.1', slug: 'exorcist',   title: 'EXORCIST',   materials: 'vhs tape, papier-mâché, PVA',   dims: '' },
+      { no: '2026.2', slug: 'bat',        title: 'BAT',        materials: '',                              dims: '' },
+      { no: '2026.3', slug: 'undertaker', title: 'UNDERTAKER', materials: '',                              dims: '' },
+      { no: '2026.4', slug: 'hat',        title: 'HAT',        materials: '',                              dims: '' },
+      { no: '2026.5', slug: 'head',       title: 'HEAD',       materials: '',                              dims: '' },
+      { no: '2026.6', slug: 'buddha',     title: 'BUDDHA',     materials: '',                              dims: '' },
+      { no: '2026.7', slug: 'seerstone',  title: 'SEERSTONE',  materials: 'eyeglasses, papier-mâché, PVA', dims: '' }
+    ];
+
+    let currentIndex = 0;
+
+    const image       = document.getElementById('main-image');
+    const registerEl  = document.getElementById('register');
+    const recordEl    = document.getElementById('record');
+    const prevBtn     = document.getElementById('prev-btn');
+    const nextBtn     = document.getElementById('next-btn');
+
+    /* Empty plates: hide the image until a file exists */
+    image.addEventListener('load',  () => { image.style.visibility = 'visible'; });
+    image.addEventListener('error', () => { image.style.visibility = 'hidden'; });
+
+    const dash = v => (v && v.trim()) ? v : '\u2014';
+
+    /* Build the register (accession order, always) */
+    const links = collection.map((o, i) => {
+      const a = document.createElement('a');
+      a.href = '#' + o.no;
+      a.innerHTML = '<span class="no">' + o.no + '</span>' + o.title;
+      a.addEventListener('click', e => { e.preventDefault(); activate(i); });
+      registerEl.appendChild(a);
+      return a;
+    });
+
+    function activate(index) {
+      currentIndex = index;
+      const o = collection[index];
+
+      image.src = o.slug + '.jpg';
+      image.alt = o.title;
+
+      recordEl.innerHTML =
+        '<div class="id-line"><span class="no">' + o.no + '</span>' + o.title + '</div>' +
+        '<div class="field">' + dash(o.materials) + '</div>' +
+        '<div class="field">' + dash(o.dims) + '</div>';
+
+      links.forEach((a, i) => {
+        a.classList.toggle('active', i === index);
+        if (i === index) { a.setAttribute('aria-current', 'true'); }
+        else { a.removeAttribute('aria-current'); }
+      });
+
+      history.replaceState(null, '', '#' + o.no);
+    }
+
+    prevBtn.addEventListener('click', () =>
+      activate((currentIndex - 1 + collection.length) % collection.length));
+    nextBtn.addEventListener('click', () =>
+      activate((currentIndex + 1) % collection.length));
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft')  prevBtn.click();
+      if (e.key === 'ArrowRight') nextBtn.click();
+    });
+
+    /* Deep links: #2026.7 opens that record directly */
+    const hash = decodeURIComponent(location.hash.slice(1));
+    const startIndex = collection.findIndex(o => o.no === hash);
+    activate(startIndex >= 0 ? startIndex : 0);
+
+    /* Preload so swaps are instant */
+    collection.forEach(o => { new Image().src = o.slug + '.jpg'; });
+  </script>
+</body>
+</html>

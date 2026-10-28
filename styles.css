@@ -1,0 +1,206 @@
+/* ============================================================
+   ALIEN HAND — register
+   One typeface, one ink, one rule. Nothing decorates.
+   ============================================================ */
+
+:root {
+  --ink:    #111;
+  --muted:  #8f8f8f;
+  --paper:  #ffffff;
+  --ground: #f1f1ef;
+  --mono:   ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  font-family: var(--mono);
+  color: var(--ink);
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---------- sheet ---------- */
+.sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  width: 90vw;
+  min-height: 90vh;
+  margin: 5vh auto;
+}
+
+/* ---------- plate ---------- */
+.image-field {
+  flex: 1;
+  min-height: 0;              /* lets the image shrink to fit */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-field img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+/* ---------- title ---------- */
+.title {
+  display: flex;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+/* ---------- register + record (shared) ---------- */
+.register a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  line-height: 1.75;
+}
+
+.register a:hover  { color: var(--ink); }
+.register a.active { color: var(--ink); pointer-events: none; }
+
+.register .no,
+.record .no {
+  display: inline-block;
+  width: 6em;                 /* aligns the ledger columns */
+}
+
+.record .id-line { letter-spacing: 0.08em; }
+.record .field   { letter-spacing: 0.04em; line-height: 1.6; }
+
+/* ============================================================
+   DESKTOP — the sheet
+   ============================================================ */
+@media (min-width: 768px) {
+  .sheet {
+    flex-direction: row;
+    height: 90vh;             /* fixed plate: image scales to fit, never scrolls */
+    min-height: 0;
+  }
+
+  .image-field {
+    padding: 5vmin 2vmin 5vmin 5vmin;   /* right column belongs to title + record */
+  }
+
+  .title {
+    writing-mode: vertical-rl;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 2vw 1.5vw 2vw 0;
+    font-size: clamp(32px, min(7vw, 13vh), 160px);  /* 13vh cap keeps it inside short windows */
+  }
+
+  .record-block {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding: 1.4vw 1.6vw;
+    /* Block anchors right; text stays left-aligned so the
+       number column of the ledger keeps its alignment. */
+  }
+
+  .register a { font-size: clamp(9px, 0.85vw, 13px); }
+
+  .record {
+    margin-top: 1em;
+    padding-top: 1em;
+    border-top: 1px solid var(--ink);
+  }
+
+  .record .id-line { font-size: clamp(11px, 1.05vw, 16px); }
+  .record .field   { font-size: clamp(10px, 0.9vw, 14px); }
+
+  .mobile-nav { display: none; }
+}
+
+/* ============================================================
+   MOBILE — full screen, everything fits, no scroll
+   ============================================================ */
+@media (max-width: 767px) {
+  body { background: var(--paper); }
+
+  .sheet {
+    width: 100vw;
+    height: 100vh;            /* fallback */
+    height: 100dvh;           /* accounts for browser chrome */
+    min-height: 0;
+    margin: 0;
+    border: none;
+    flex-direction: column;
+  }
+
+  .image-field {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    padding: 6vw 6vw 3vw;
+  }
+
+  .title {
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 2vw 0 1vw;
+    font-size: 14vw;
+    letter-spacing: 0.05em;
+    line-height: 1.05;
+  }
+
+  .record-block {
+    flex: none;
+    text-align: center;
+    padding: 2vw 6vw 3vw;
+  }
+
+  .register { display: none; }         /* arrows navigate on mobile */
+
+  .record .no {
+    display: inline;
+    width: auto;
+    margin-right: 1.2em;
+  }
+
+  .record .id-line { font-size: 3.8vw; }
+  .record .field   { font-size: 3.2vw; }
+
+  .mobile-nav {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22vw;                /* arrows spread wide, flanking the record above */
+    padding: 1vw 0 6vw;
+  }
+
+  .nav-arrow {
+    background: none;
+    border: none;
+    font: inherit;
+    font-size: 5.5vw;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0 8px;
+    line-height: 1;
+  }
+
+  .nav-arrow:hover { color: var(--ink); }
+}

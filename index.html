@@ -10,10 +10,10 @@
   <div class="sheet">
 
     <div class="image-field">
-      <img id="main-image" src="seerstone.jpg" alt="">
+      <img id="main-image" alt="">
     </div>
 
-    <h1 class="title"><span>ALIEN</span><span>HAND</span></h1>
+    <h1 class="title"><a href="./" id="home"><span>ALIEN</span><span>HAND</span></a></h1>
 
     <div class="record-block">
       <nav class="register" id="register" aria-label="Register"></nav>
@@ -33,33 +33,54 @@
        - Array order IS accession order. New objects are appended.
        - Numbers are never reused or reassigned.
        - Image file must be named  slug + '.jpg'  (all lowercase).
+       - No image file yet = empty plate. The record still renders.
        - Empty fields render as an em dash. Fill them in as the
          records get catalogued; identical boilerplate, always.
-       - dims format when known: '14 × 15 × 9 cm'
+       - materials: object inside as a generic noun, then the same
+         boilerplate. Add a material word only where the bare noun
+         would mean the real thing (rubber bat, plastic skull).
+       - dims: H × W × D, whole cm rounded up, smallest box that holds
+         the object as it rests in its photo. '14 × 15 × 9 cm'
        ============================================================ */
     const collection = [
-      { no: '2026.1', slug: 'exorcist',   title: 'EXORCIST',   materials: 'vhs tape, papier-mâché, PVA',   dims: '' },
-      { no: '2026.2', slug: 'bat',        title: 'BAT',        materials: '',                              dims: '' },
-      { no: '2026.3', slug: 'undertaker', title: 'UNDERTAKER', materials: '',                              dims: '' },
-      { no: '2026.4', slug: 'hat',        title: 'HAT',        materials: '',                              dims: '' },
-      { no: '2026.5', slug: 'head',       title: 'HEAD',       materials: '',                              dims: '' },
-      { no: '2026.6', slug: 'buddha',     title: 'BUDDHA',     materials: '',                              dims: '' },
-      { no: '2026.7', slug: 'seerstone',  title: 'SEERSTONE',  materials: 'eyeglasses, papier-mâché, PVA', dims: '' }
+      { no: '2026.1', slug: 'exorcist',   title: 'EXORCIST',   materials: 'vhs tape, papier-mâché, PVA',      dims: '' },
+      { no: '2026.2', slug: 'bat',        title: 'BAT',        materials: 'rubber bat, papier-mâché, PVA',    dims: '' },
+      { no: '2026.3', slug: 'undertaker', title: 'UNDERTAKER', materials: 'figurine, papier-mâché, PVA',      dims: '' },
+      { no: '2026.4', slug: 'hat',        title: 'HAT',        materials: 'hat, papier-mâché, PVA',           dims: '' },
+      { no: '2026.5', slug: 'head',       title: 'HEAD',       materials: 'plastic skull, papier-mâché, PVA', dims: '' },
+      { no: '2026.6', slug: 'buddha',     title: 'BUDDHA',     materials: 'figurine, papier-mâché, PVA',      dims: '' },
+      { no: '2026.7', slug: 'seerstone',  title: 'SEERSTONE',  materials: 'eyeglasses, papier-mâché, PVA',    dims: '' }
     ];
 
-    let currentIndex = 0;
+    /* ============================================================
+       THE LANDING PLATE
+       - Shown at the bare address (no #number). Not a record:
+         no number, no fields, not in the register.
+       - Any proportions. No file yet = empty plate.
+       - Arrows step from here into the archive; the title returns here.
+       - The record space shows the institution's address. Kept in two
+         parts so it never appears whole in the page source (scrapers).
+       ============================================================ */
+    const landing = {
+      image:   'landing.jpg',
+      alt:     '',
+      contact: { user: 'registrar', domain: 'alien-hand.com' }
+    };
+
+    let currentIndex = -1;            /* -1 = landing plate */
 
     const image       = document.getElementById('main-image');
     const registerEl  = document.getElementById('register');
     const recordEl    = document.getElementById('record');
     const prevBtn     = document.getElementById('prev-btn');
     const nextBtn     = document.getElementById('next-btn');
-
-    /* Empty plates: hide the image until a file exists */
-    image.addEventListener('load',  () => { image.style.visibility = 'visible'; });
-    image.addEventListener('error', () => { image.style.visibility = 'hidden'; });
+    const homeLink    = document.getElementById('home');
 
     const dash = v => (v && v.trim()) ? v : '\u2014';
+
+    /* Missing photo = empty plate, never a broken-image icon */
+    image.addEventListener('load',  () => image.classList.remove('missing'));
+    image.addEventListener('error', () => image.classList.add('missing'));
 
     /* Build the register (accession order, always) */
     const links = collection.map((o, i) => {
@@ -71,6 +92,16 @@
       return a;
     });
 
+    /* The current record's line drops out of the register and the
+       rest close up, still in accession order; the record below names it. */
+    function markRegister(index) {
+      links.forEach((a, i) => {
+        a.classList.toggle('active', i === index);
+        if (i === index) { a.setAttribute('aria-current', 'true'); }
+        else { a.removeAttribute('aria-current'); }
+      });
+    }
+
     function activate(index) {
       currentIndex = index;
       const o = collection[index];
@@ -78,24 +109,45 @@
       image.src = o.slug + '.jpg';
       image.alt = o.title;
 
+      recordEl.classList.remove('landing');
       recordEl.innerHTML =
         '<div class="id-line"><span class="no">' + o.no + '</span>' + o.title + '</div>' +
         '<div class="field">' + dash(o.materials) + '</div>' +
         '<div class="field">' + dash(o.dims) + '</div>';
 
-      links.forEach((a, i) => {
-        a.classList.toggle('active', i === index);
-        if (i === index) { a.setAttribute('aria-current', 'true'); }
-        else { a.removeAttribute('aria-current'); }
-      });
-
+      markRegister(index);
       history.replaceState(null, '', '#' + o.no);
     }
 
-    prevBtn.addEventListener('click', () =>
-      activate((currentIndex - 1 + collection.length) % collection.length));
-    nextBtn.addEventListener('click', () =>
-      activate((currentIndex + 1) % collection.length));
+    function showLanding() {
+      currentIndex = -1;
+
+      image.src = landing.image;
+      image.alt = landing.alt;
+
+      /* Same three lines as a record, so nothing on the sheet moves
+         when you step into the archive: the address, then two empty. */
+      const address = landing.contact.user + '@' + landing.contact.domain;
+      recordEl.classList.add('landing');
+      recordEl.innerHTML =
+        '<div class="id-line"><a class="contact" href="mailto:' + address + '">' + address + '</a></div>' +
+        '<div class="field">&nbsp;</div><div class="field">&nbsp;</div>';
+
+      markRegister(-1);
+      history.replaceState(null, '', location.pathname + location.search);
+    }
+
+    /* Arrows cycle the archive; from the landing plate they step in */
+    const step = d => {
+      const n = collection.length;
+      if (currentIndex < 0) activate(d > 0 ? 0 : n - 1);
+      else activate((currentIndex + d + n) % n);
+    };
+
+    prevBtn.addEventListener('click', () => step(-1));
+    nextBtn.addEventListener('click', () => step(1));
+
+    homeLink.addEventListener('click', e => { e.preventDefault(); showLanding(); });
 
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowLeft')  prevBtn.click();
@@ -103,12 +155,22 @@
     });
 
     /* Deep links: #2026.7 opens that record directly */
-    const hash = decodeURIComponent(location.hash.slice(1));
-    const startIndex = collection.findIndex(o => o.no === hash);
-    activate(startIndex >= 0 ? startIndex : 0);
+    const indexFromHash = () =>
+      collection.findIndex(o => o.no === decodeURIComponent(location.hash.slice(1)));
+
+    const startIndex = indexFromHash();
+    if (startIndex >= 0) activate(startIndex); else showLanding();
+
+    /* ...including when the hash changes on an already-open page */
+    window.addEventListener('hashchange', () => {
+      const i = indexFromHash();
+      if (i < 0) { if (currentIndex !== -1) showLanding(); }
+      else if (i !== currentIndex) activate(i);
+    });
 
     /* Preload so swaps are instant */
-    collection.forEach(o => { new Image().src = o.slug + '.jpg'; });
+    [landing.image, ...collection.map(o => o.slug + '.jpg')]
+      .forEach(src => { new Image().src = src; });
   </script>
 </body>
 </html>
